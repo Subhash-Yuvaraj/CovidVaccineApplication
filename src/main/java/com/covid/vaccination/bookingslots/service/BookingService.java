@@ -6,4 +6,6 @@ import com.covid.vaccination.bookingslots.model.User;
 
 public interface BookingService {
 	public Booking findBySlotAndUser(Slot slot,User user);
+
+	public Booking save(Booking booking);
 }

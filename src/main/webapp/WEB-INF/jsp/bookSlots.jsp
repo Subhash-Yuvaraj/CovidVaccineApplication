@@ -42,7 +42,7 @@
                     <td>${slot.centre.workingFrom}</td>
                     <td>${slot.centre.workingTo}</td>
                     <td>
-                        <a href="/bookSlot?slotId=${slot.sId}">Book</a>
+                        <a href="/bookSlot?sId=${slot.sId}">Book</a>
                     </td>
                 </tr>
             </c:forEach>

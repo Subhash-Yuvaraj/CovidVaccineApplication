@@ -68,5 +68,11 @@ public class CentreServiceImpl implements CentreService {
 		// TODO Auto-generated method stub
 		return repository.findByPinAndWorkingFromGreaterThanAndStateTrue(pin, start);
 	}
+	@SuppressWarnings("deprecation")
+	@Override
+	public Centre findOne(Long cId) {
+		// TODO Auto-generated method stub
+		return repository.getOne(cId);
+	}
 
 }

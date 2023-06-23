@@ -3,8 +3,8 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <head>
     <title>Admin Login</title>
-    <link rel="stylesheet" type="text/css" href="/path/to/admin-login.css">
-    <script type="text/javascript" src="/path/to/admin-login.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/admin-login.css">
+    <script type="text/javascript" src="/js/admin-login.js"></script>
 </head>
 <body>
     <div class="container">

@@ -20,6 +20,7 @@ import com.covid.vaccination.bookingslots.model.Booking;
 import com.covid.vaccination.bookingslots.model.Centre;
 import com.covid.vaccination.bookingslots.model.Slot;
 import com.covid.vaccination.bookingslots.model.User;
+import com.covid.vaccination.bookingslots.service.BookingServiceImpl;
 import com.covid.vaccination.bookingslots.service.CentreServiceImpl;
 import com.covid.vaccination.bookingslots.service.SlotServiceImpl;
 import com.covid.vaccination.bookingslots.service.UserServiceImpl;
@@ -37,7 +38,8 @@ public class UserController {
     public String showSignupForm() {
         return "signup";
     }
-    
+    @Autowired
+    private BookingServiceImpl bookingService;
     @PostMapping("/signup")
     public String signup(
             @RequestParam("email") String email,
@@ -153,7 +155,28 @@ public class UserController {
     	return "bookSlots";
     	
     }
-    
+    @GetMapping(value = "/bookSlot")
+    public String bookSlot(@RequestParam("sId") Long sId, Model model) {
+        
+        if (userhome == null) {
+            return "redirect:/login";
+        }
+
+        Slot slot = slotService.getOne(sId);
+
+        if (slot != null && bookingService.findBySlotAndUser(slot, userhome)==null && slot.getBookings().size()<10) {
+            Booking booking = new Booking();
+            booking.setSlot(slot);
+            booking.setUser(userhome);
+
+            bookingService.save(booking);
+
+            return "redirect:/userdashboard";
+        }
+
+        return "redirect:/bookSlots";
+    }
+
     
 
 }

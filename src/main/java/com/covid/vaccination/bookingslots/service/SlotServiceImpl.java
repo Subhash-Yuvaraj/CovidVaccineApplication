@@ -27,5 +27,11 @@ public class SlotServiceImpl implements SlotService {
 		// TODO Auto-generated method stub
 		return repository.findByDateAndCentre(date, centre);
 	}
+	@Override
+	@SuppressWarnings("deprecation")
+	public Slot getOne(Long sId) {
+		// TODO Auto-generated method stub
+		return repository.getOne(sId);
+	}
 
 }

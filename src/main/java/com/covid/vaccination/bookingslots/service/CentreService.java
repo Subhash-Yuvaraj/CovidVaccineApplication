@@ -15,4 +15,5 @@ public interface CentreService {
 	public Centre getCenterById(Long cId);
 	Centre saveCenter(Centre existingCenter);
 	public List<Centre> findByPinAndWorkingFromGreaterThanAndStateTrue(Integer pin,String start);
+	public Centre findOne(Long cId);
 }

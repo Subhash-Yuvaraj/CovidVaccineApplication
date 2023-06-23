@@ -114,7 +114,12 @@ public class AdminController {
     }
 		@GetMapping("/addSlot")
 		public String showAddSlotPage(@RequestParam("cId") Long cId, Model model) {
+			if(adminHome==null) {
+				return "redirect:/adminlogin";
+			}
 			model.addAttribute("cId", cId);
+			Centre centre=centreService.findOne(cId);
+			model.addAttribute("slots", centre.getSlots());
 			return "addSlot";
 		}
 		@PostMapping("/saveSlot")

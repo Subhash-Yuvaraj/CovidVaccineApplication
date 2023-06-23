@@ -10,10 +10,10 @@
 <body>
     <div class="container">
         <h1>Welcome, Admin</h1>
-        <div class="navbar">
-            <a href="/addCentre" onclick="handleAddCentre()">Add Centre</a>
-            <a href="/viewCentres" onclick="handleViewCentre()">View Centre</a>
-        </div>
+        <center><table border="0.5px">
+            <tr><td><a href="/addCentre" class="link" onclick="handleAddCentre()">Add Centre</a></td></tr>
+            <tr><td><a href="/viewCentres" class="link" onclick="handleViewCentre()">View Centre</a></td></tr>
+        </table></center>
         <div class="content">
             <!-- Place your content here -->
         </div>

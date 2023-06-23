@@ -32,12 +32,13 @@
         
         <label for="workingTo">Working To:</label>
         <input type="text" id="workingTo" name="workingTo" value="${center.workingTo}" required>
-        
+        <center>
         <button type="submit" class="submit-button">Update</button>
         <c:if test="${not empty error}">
                 <div id="error">${error}</div>
-        </c:if>
-        <a href="/addSlot?cId=${center.cId}" class="add-slot-button">Manage</a>
+        </c:if><br>
+        
+        <a href="/addSlot?cId=${center.cId}" class="submit-button" style="text-decoration:none;">Manage</a></center>
     </form>
     <div id="error-message" class="error"></div>
 </body>
