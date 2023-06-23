@@ -52,6 +52,7 @@ public class CentreServiceImpl implements CentreService {
 		// TODO Auto-generated method stub
 		return repository.findAll();
 	}
+	@SuppressWarnings("deprecation")
 	@Override
 	public Centre getCenterById(Long cId) {
 		// TODO Auto-generated method stub
@@ -74,5 +75,5 @@ public class CentreServiceImpl implements CentreService {
 		// TODO Auto-generated method stub
 		return repository.getOne(cId);
 	}
-
+	
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.covid.vaccination.bookingslots.model.Admin;
 import com.covid.vaccination.bookingslots.model.Centre;
@@ -51,15 +52,15 @@ public class AdminController {
 		}
 	}
 	@GetMapping("/addCentre")
-	public String viewAddCentre(Model model) {
+	public String viewAddCentre(Model model,RedirectAttributes redirectAttributes) {
 		if(adminHome==null) {
-			model.addAttribute("error", "Login in first");
+			redirectAttributes.addFlashAttribute("error", "You have to login first");
 			return "redirect:/adminlogin";
 		}
 		return "addCentre";
 	}
 	@PostMapping("/addCentre")
-	public String addCentre(@RequestParam String addressLine1,@RequestParam String addressLine2,@RequestParam String workingFrom,@RequestParam String workingTo,@RequestParam Integer pin,Model model) {
+	public String addCentre(@RequestParam String addressLine1,@RequestParam String addressLine2,@RequestParam String workingFrom,RedirectAttributes redirectAttributes,@RequestParam String workingTo,@RequestParam Integer pin,Model model) {
 		Centre centre=new Centre();
 		centre.setAddressLine1(addressLine1);
 		centre.setAddressLine2(addressLine2);
@@ -68,7 +69,7 @@ public class AdminController {
 		centre.setWorkingFrom(workingFrom);
 		centre.setWorkingTo(workingTo);
 		if(adminHome==null) {
-			model.addAttribute("error", "Login first");
+			redirectAttributes.addFlashAttribute("error", "Login first");
 			return "adminlogin";
 		}
 		System.out.println("Successfully to be saved");
@@ -88,28 +89,32 @@ public class AdminController {
 		return slot;		
 	}
 	@GetMapping("/viewCentres")
-	public String viewCentres(Model model) {
+	public String viewCentres(Model model,RedirectAttributes redirectAttributes) {
 		if(adminHome==null) {
+			redirectAttributes.addFlashAttribute("error", "Login first");
 			return "redirect:/adminlogin";
 		}
 		model.addAttribute("centers", centreService.findAll());
 		return "viewCentres";
-	}
+	}	
 	@GetMapping("/admindashboard")
 	public String dashboard() {
 		return "admindashboard";
 	}
 	@GetMapping("/manage")
-    public String showManageCenterPage(@RequestParam Long cId, Model model) {
+    public String showManageCenterPage(@RequestParam Long cId, Model model,RedirectAttributes redirectAttributes) {
         Centre center = centreService.getCenterById(cId);
+        
         if(adminHome==null){
+        	redirectAttributes.addFlashAttribute("error", "first you have to login");
         	return "redirect:/adminlogin";
         }
-        if (center != null) {
-            model.addAttribute("center", center);
+        if (center != null && center.getcId()==cId) {
+        	model.addAttribute("center", center);
             return "manage";
         } else {
-            return "redirect:/viewCentres";
+        	redirectAttributes.addFlashAttribute("error", "Enter proper Centre id");
+            return "viewCentres";
         }
     }
 		@GetMapping("/addSlot")
@@ -123,9 +128,10 @@ public class AdminController {
 			return "addSlot";
 		}
 		@PostMapping("/saveSlot")
-	    public String saveSlot(@RequestParam("cId") Long cId, @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date date, Model model) {
+	    public String saveSlot(@RequestParam("cId") Long cId,RedirectAttributes redirectAttributes, @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date date, Model model) {
 	        Centre centre = centreService.getCenterById(cId);
 	        if (centre == null) {
+	        	redirectAttributes.addFlashAttribute("error", "Enter the proper centre id");
 	            return "redirect:/viewCentres"; // Replace with the desired error page
 	        }
 	        if(slotService.findByDateAndCentre(date, centre)!=null)
@@ -142,19 +148,19 @@ public class AdminController {
 	    }
 
 	@PostMapping("/manage/{cId}/update")
-    public String updateCenter(@PathVariable("cId") Long cId, @ModelAttribute("center") Centre updatedCenter,Model model) {
+    public String updateCenter(@PathVariable("cId") Long cId,RedirectAttributes redirectAttributes, @ModelAttribute("center") Centre updatedCenter,Model model) {
         Centre existingCenter = centreService.getCenterById(cId);
         
         if (existingCenter != null) {
         	Set<Slot>slots=existingCenter.getSlots();
         	for(Slot slot:slots) {
-        		if(slot.getBookings().size()>0) {
-        			model.addAttribute("error", "People has already booked in the slot you can't edit");
+        		if(slot.getBookings().size()>0 && slot.getDate().compareTo(new Date())>=0) {
+        			redirectAttributes.addAttribute("error", "People has already booked for future dose in the slot,so you can't edit");
         			return "redirect:/manage?cId=" + cId;
 
+        			
         		}
         	}
-            // Update the fields of the existing center with the new values
             existingCenter.setAddressLine1(updatedCenter.getAddressLine1());
             existingCenter.setAddressLine2(updatedCenter.getAddressLine2());
             existingCenter.setPin(updatedCenter.getPin());
@@ -170,4 +176,10 @@ public class AdminController {
             return "redirect:/viewCentres";
         }
     }
+	@GetMapping("/adminlogout")
+	public String adminlogout(RedirectAttributes redirectAttributes,Model model) {
+		adminHome=null;
+		redirectAttributes.addFlashAttribute("error", "You have been successfuly logged out");
+		return "adminlogin";
+	}
 }

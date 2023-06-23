@@ -13,7 +13,7 @@ public interface CentreService {
 	public Centre save(Centre centre);
 	public List<Centre> findAll();
 	public Centre getCenterById(Long cId);
-	Centre saveCenter(Centre existingCenter);
+	public Centre saveCenter(Centre existingCenter);
 	public List<Centre> findByPinAndWorkingFromGreaterThanAndStateTrue(Integer pin,String start);
 	public Centre findOne(Long cId);
 }

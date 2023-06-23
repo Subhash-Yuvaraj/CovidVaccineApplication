@@ -1,5 +1,6 @@
 package com.covid.vaccination.bookingslots.controller;
 
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -9,12 +10,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.covid.vaccination.bookingslots.model.Booking;
 import com.covid.vaccination.bookingslots.model.Centre;
@@ -24,6 +30,8 @@ import com.covid.vaccination.bookingslots.service.BookingServiceImpl;
 import com.covid.vaccination.bookingslots.service.CentreServiceImpl;
 import com.covid.vaccination.bookingslots.service.SlotServiceImpl;
 import com.covid.vaccination.bookingslots.service.UserServiceImpl;
+
+import net.bytebuddy.utility.RandomString;
 
 @Controller
 public class UserController {
@@ -53,7 +61,7 @@ public class UserController {
         
         User existingUser = userService.findByEmail(email);
         if (existingUser != null) {
-            model.addAttribute("errorMsg", "Email already exists");
+            model.addAttribute("error", "Email already exists");
             return "redirect:/signup";
         }
         User user = new User();
@@ -71,9 +79,34 @@ public class UserController {
         
         return "redirect:/userlogin"; 
       }
+    @GetMapping("/userforgotpassword")
+	public String showForm(Model m) {
+		
+		return "forgotpassword";
+	}
+    /*@PostMapping("/userforgotpassword")
+	public String sendRequest(HttpServletRequest http,ModelMap m)  {
+		String email=http.getParameter("email");
+		String token=RandomString.make(45);
+		try {
+			userService.updateResetPassword(token, email);
+			String resetPasswordLink=Utility.getSiteURL(http)+"/resetpassword?token="+token;
+			sendEmail(email,resetPasswordLink);
+		} catch (UserNotFoundException e) {
+			// TODO Auto-generated catch block
+			m.put("error",e.getMessage());
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			m.put("error",e.getMessage());
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			m.put("error",e.getMessage());
+		}
+		return "forgotpassword";
+	}*/
     @GetMapping("/userlogin")
     public String showLoginForm(Model model) {
-        model.addAttribute("errorMsg", ""); // Initialize error message to empty string
+    	userhome=null;
         return "userlogin";
     }
     
@@ -86,7 +119,7 @@ public class UserController {
         User user = userService.findByEmail(email);
         password=hashedPassword(password);
         if (user == null || !user.getPassword().equals(password)) {
-            model.addAttribute("errorMsg", "Invalid email or password"); // Set error message
+            model.addAttribute("error", "Invalid email or password"); // Set error message
             return "userlogin";
         }
         userhome=user;
@@ -97,7 +130,6 @@ public class UserController {
     	if(userhome==null)
     		return "redirect:/userlogin";
         Set<Booking> bookings = userhome.getBookings();
-        System.out.println("control after fetching");
         model.addAttribute("bookings", bookings);
         
         return "viewHistory";
@@ -126,24 +158,30 @@ public class UserController {
     	return null;
     }
     @GetMapping("/userdashboard")
-    public String userDashboard() {
+    public String userDashboard(RedirectAttributes redirectAttributes,Model model) {
     	if(userhome==null) {
-    		return "userlogin";
+    		redirectAttributes.addFlashAttribute("error", "You have to login first");
+    		return "redirect:/userlogin";
     	}
+    	model.addAttribute("name", userhome.getName());
         return "userdashboard";
     }
     @GetMapping("/bookSlots")
     public String bookSlots(@RequestParam(name = "pin", required = false) Integer pin,
             @RequestParam(name = "workingFrom", required = false) String workingFrom,
-            Model model) throws ParseException {
+            Model model,RedirectAttributes redirectAttributes) throws ParseException {
     	if(userhome==null) {
-    		return "userlogin";
+    		redirectAttributes.addFlashAttribute("error", "You have to login first");
+    		return "redirect:/userlogin";
     	}
+    	
     	Set<Booking>bookings=userhome.getBookings();
+    	System.out.println(bookings.size());
     	if(bookings.size()>1) {
-    		model.addAttribute("errorMsg", "You have already booked for two doses");
-    		return "userdashboard";
+    		redirectAttributes.addFlashAttribute("error", "You have already booked for two doses");
+    		return "redirect:/userdashboard";
     	}
+    	model.addAttribute("name", userhome.getName());
     	List<Centre> centres=centreService.findByPinAndWorkingFromGreaterThanAndStateTrue(pin, workingFrom);
     	List<Slot> slots=new ArrayList<Slot>();
         Date date=new Date();
@@ -151,32 +189,50 @@ public class UserController {
     		List<Slot> slotInner=slotService.findByDateGreaterThanAndCentre(date,centre);
     		slots.addAll(slotInner);
     	}
+    	
     	model.addAttribute("slots", slots);
     	return "bookSlots";
     	
     }
     @GetMapping(value = "/bookSlot")
-    public String bookSlot(@RequestParam("sId") Long sId, Model model) {
+    public String bookSlot(@RequestParam("sId") Long sId, Model model,RedirectAttributes redirectAttributes) {
         
         if (userhome == null) {
-            return "redirect:/login";
+        	redirectAttributes.addFlashAttribute("error", "You have to login first");
+            return "redirect:/userlogin";
         }
 
         Slot slot = slotService.getOne(sId);
-
-        if (slot != null && bookingService.findBySlotAndUser(slot, userhome)==null && slot.getBookings().size()<10) {
+        
+        if (slot != null && bookingService.findBySlotAndUser(slot, userhome)==null ) {
             Booking booking = new Booking();
             booking.setSlot(slot);
             booking.setUser(userhome);
-
-            bookingService.save(booking);
-
+            if(slot.getBookings().size()>9) {
+            	redirectAttributes.addFlashAttribute("error", "The slot is full");
+            	
+            }
+            else if(userhome.getBookings().size()>1) {
+            	redirectAttributes.addFlashAttribute("error", "You have booked 2 slots already");
+            }
+            else {
+            	bookingService.save(booking);
+                redirectAttributes.addFlashAttribute("error", "You have booked a slot");
+            }
             return "redirect:/userdashboard";
         }
 
         return "redirect:/bookSlots";
     }
-
-    
+    @GetMapping("/userlogout")
+    public String userLogout(Model model) {
+    	
+    	userhome=null;
+    	return "userlogin";
+    }
+    @GetMapping("/userforgotPassword")
+    public String forgotPassword() {
+    	return "userforgotPassword";
+    }
 
 }

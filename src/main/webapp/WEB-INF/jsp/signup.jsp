@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+
     <title>Signup</title>
     <link rel="stylesheet" type="text/css" href="/css/signup.css"> 
     <script src="/js/signup.js"></script> 
@@ -11,7 +13,7 @@
     <form action="signup" method="post">
         <label for="email">Email:</label>
         <input type="email" name="email" id="email" required>
-        <span class="error">${errorMsg}</span> <!-- Display error message, if any -->
+        <span class="error">${error}</span> 
         
         <label for="password">Password:</label>
         <input type="password" name="password" id="password" required>
@@ -20,7 +22,7 @@
         <input type="text" name="name" id="name" required>
         
         <label for="dob">Date of Birth:</label>
-        <input type="date" name="dob" id="dob" required>
+        <input type="date" name="dob" id="dob" max='2005-01-01' required>
         
         <label for="address1">Address Line 1:</label>
         <input type="text" name="address1" id="address1" required>
@@ -33,5 +35,6 @@
         
         <input type="submit" value="Sign up">
     </form>
+    <p id="error">${error}</p>
 </body>
 </html>
