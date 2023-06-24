@@ -11,9 +11,13 @@ import java.util.List;
 import java.util.Set;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.covid.vaccination.bookingslots.config.Utility;
 import com.covid.vaccination.bookingslots.model.Booking;
 import com.covid.vaccination.bookingslots.model.Centre;
 import com.covid.vaccination.bookingslots.model.Slot;
@@ -42,6 +47,8 @@ public class UserController {
 	User userhome=null;
 	@Autowired
 	private SlotServiceImpl slotService;
+	@Autowired
+	private JavaMailSender mailSender;
     @GetMapping("/signup")
     public String showSignupForm() {
         return "signup";
@@ -84,26 +91,7 @@ public class UserController {
 		
 		return "forgotpassword";
 	}
-    /*@PostMapping("/userforgotpassword")
-	public String sendRequest(HttpServletRequest http,ModelMap m)  {
-		String email=http.getParameter("email");
-		String token=RandomString.make(45);
-		try {
-			userService.updateResetPassword(token, email);
-			String resetPasswordLink=Utility.getSiteURL(http)+"/resetpassword?token="+token;
-			sendEmail(email,resetPasswordLink);
-		} catch (UserNotFoundException e) {
-			// TODO Auto-generated catch block
-			m.put("error",e.getMessage());
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			m.put("error",e.getMessage());
-		} catch (MessagingException e) {
-			// TODO Auto-generated catch block
-			m.put("error",e.getMessage());
-		}
-		return "forgotpassword";
-	}*/
+    
     @GetMapping("/userlogin")
     public String showLoginForm(Model model) {
     	userhome=null;
@@ -234,5 +222,76 @@ public class UserController {
     public String forgotPassword() {
     	return "userforgotPassword";
     }
+    @PostMapping("/userforgotPassword")
+	public String sendRequest(HttpServletRequest http,ModelMap m)  {
+		String email=http.getParameter("email");
+		String token=RandomString.make(32);
+		try {
+			userService.updateResetPassword(token, email);
+			String resetPasswordLink=Utility.getSiteURL(http)+"/userResetPassword?token="+token;
+			sendEmail(email,resetPasswordLink);
+			m.put("error", "Link has been sent");
+		}  catch (Exception e) {
+			// TODO Auto-generated catch block
+			
+			m.put("error",e);
+			
+		}
+		return "userforgotPassword";
+	}
+    private void sendEmail(String email, String resetPasswordLink) throws UnsupportedEncodingException, MessagingException {
+		// TODO Auto-generated method stub
+		MimeMessage msg=mailSender.createMimeMessage();
+		MimeMessageHelper helper=new MimeMessageHelper(msg);
+		helper.setFrom("contact@covidvaccine.com", "Covid Vaccination Support");
+		helper.setTo(email);
+		String subject="Here's the link to reset your mail";
+		String content="<p>Hello</p>"
+			+"You have requested to reset your password."
+			+"Click the below link to change your password:"
+			+"<a href=\""+resetPasswordLink+ "\">Click here</a>"
+			+"<p>Ignore this email if you remember your password</p>";
+		helper.setSubject(subject);
+		helper.setText(content,true);
+		mailSender.send(msg);	
+	}
+    @GetMapping("/userResetPassword")
+	public String resetPasswordForm(@Param(value="token")String token,Model m) {
+		User user=userService.getByToken(token);
+		if(user==null) {
+			m.addAttribute("title","Reset your password");
+			m.addAttribute("message","Invalid token");
+			return "message";
+			
+		}
+		m.addAttribute("token",token);
+		m.addAttribute("pageTitle","Reset Your Password");
+		return "userResetPassword";
+	}
+    @PostMapping("/userResetPassword")
+	public String processResetPassword(RedirectAttributes redirectAttributes,HttpServletRequest request,Model m) {
+		String token=request.getParameter("token");
+		String password=request.getParameter("password");
+		String confirm=request.getParameter("confirmpassword");
+		User user=userService.getByToken(token);
+		if(user==null) {
+			m.addAttribute("title","Reset your password");
+			m.addAttribute("error","Invalid token");
+			return "resetpassword";
+			
+		}
+		else if(!password.equals(confirm)) {
+			m.addAttribute("title","Reset your password");
+			m.addAttribute("error", "Both passwords don't match");
+			return "resetPassword";
+		}
+		else {
+			
+			user.setPassword(hashedPassword(password));
+			userService.save(user);
+			redirectAttributes.addFlashAttribute("error", "You have successfully changed the password");
+			return "userlogin";
+		}
+	}
 
 }

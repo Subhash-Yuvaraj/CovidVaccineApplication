@@ -1,13 +1,23 @@
 package com.covid.vaccination.bookingslots.controller;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Set;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,12 +26,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.covid.vaccination.bookingslots.config.Utility;
 import com.covid.vaccination.bookingslots.model.Admin;
 import com.covid.vaccination.bookingslots.model.Centre;
 import com.covid.vaccination.bookingslots.model.Slot;
 import com.covid.vaccination.bookingslots.service.AdminServiceImpl;
 import com.covid.vaccination.bookingslots.service.CentreServiceImpl;
 import com.covid.vaccination.bookingslots.service.SlotServiceImpl;
+
+import net.bytebuddy.utility.RandomString;
 @Controller
 public class AdminController {
 	@Autowired 
@@ -31,6 +44,8 @@ public class AdminController {
 	@Autowired
 	private AdminServiceImpl adminService;
 	Admin adminHome=null;
+	@Autowired
+	private JavaMailSender mailSender;
 	@GetMapping("/adminlogin")
 	public String showLoginForm(Model model) {
         return "adminlogin";
@@ -182,4 +197,87 @@ public class AdminController {
 		redirectAttributes.addFlashAttribute("error", "You have been successfuly logged out");
 		return "adminlogin";
 	}
+	@GetMapping("/adminforgotPassword")
+    public String forgotPassword() {
+    	return "adminforgotPassword";
+    }
+    @PostMapping("/adminforgotPassword")
+	public String sendRequest(HttpServletRequest http,ModelMap m)  {
+		String email=http.getParameter("email");
+		String token=RandomString.make(32);
+		try {
+			adminService.updateResetPassword(token, email);
+			String resetPasswordLink=Utility.getSiteURL(http)+"/adminResetPassword?token="+token;
+			sendEmail(email,resetPasswordLink);
+			m.put("error", "Link has been sent");
+		}  catch (Exception e) {
+			// TODO Auto-generated catch block
+			
+			m.put("error","Error in server. Please try again");
+			
+		}
+		return "adminforgotPassword";
+	}
+    private void sendEmail(String email, String resetPasswordLink) throws UnsupportedEncodingException, MessagingException {
+		// TODO Auto-generated method stub
+		MimeMessage msg=mailSender.createMimeMessage();
+		MimeMessageHelper helper=new MimeMessageHelper(msg);
+		helper.setFrom("contact@covidvaccine.com", "Covid Vaccination Support");
+		helper.setTo(email);
+		String subject="Here's the link to reset your mail";
+		String content="<p>Hello</p>"
+			+"You have requested to reset your password."
+			+"Click the below link to change your password:"
+			+"<a href=\""+resetPasswordLink+ "\">Click here</a>"
+			+"<p>Ignore this email if you remember your password</p>";
+		helper.setSubject(subject);
+		helper.setText(content,true);
+		mailSender.send(msg);	
+	}
+    @GetMapping("/adminResetPassword")
+	public String resetPasswordForm(@Param(value="token")String token,Model m) {
+		Admin admin=adminService.getByToken(token);
+		if(admin==null) {
+			m.addAttribute("title","Reset your password");
+			m.addAttribute("message","Invalid token");
+			return "message";
+			
+		}
+		m.addAttribute("token",token);
+		m.addAttribute("pageTitle","Reset Your Password");
+		return "adminResetPassword";
+	}
+    @PostMapping("/adminResetPassword")
+	public String processResetPassword(RedirectAttributes redirectAttributes,HttpServletRequest request,Model m) throws NoSuchAlgorithmException {
+		String token=request.getParameter("token");
+		String password=request.getParameter("password");
+		Admin admin=adminService.getByToken(token);
+		if(admin==null) {
+			m.addAttribute("title","Reset your password");
+			m.addAttribute("error","Invalid token");
+			return "resetpassword";
+			
+		}
+		else {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+
+		      md.update(password.getBytes());
+
+		      byte[] bytes = md.digest();
+
+		      StringBuilder sb = new StringBuilder();
+		      for (int i = 0; i < bytes.length; i++) {
+		        sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+		      }
+
+		      // Get complete hashed password in hex format
+		      String hashed = sb.toString();
+			admin.setPassword(hashed);
+			adminService.save(admin);
+			redirectAttributes.addFlashAttribute("error", "You have successfully changed the password");
+			return "redirect:/adminlogin";
+		}
+	}
+
 }
+

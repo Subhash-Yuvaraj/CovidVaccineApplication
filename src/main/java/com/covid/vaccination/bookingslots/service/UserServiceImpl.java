@@ -25,5 +25,10 @@ public class UserServiceImpl implements UserService{
 		// TODO Auto-generated method stub
 		repository.updateResetPassword(token,email);
 	}
-
+	@Override
+	public User getByToken(String token) {
+		// TODO Auto-generated method stub
+		return repository.getByResetPasswordToken(token);
+	}
+	
 }

@@ -26,7 +26,6 @@ public class AdminServiceImpl implements AdminService{
 	        sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
 	      }
 
-	      // Get complete hashed password in hex format
 	      String hashed = sb.toString();
 	    
 		
@@ -41,6 +40,22 @@ public class AdminServiceImpl implements AdminService{
 	public Admin findByEmail(String email) {
 		// TODO Auto-generated method stub
 		return adminRepository.findByEmail(email);
+	}
+	@Override
+	public void updateResetPassword(String token, String email) {
+		// TODO Auto-generated method stub
+		adminRepository.updateResetPassword(token,email);
+		
+	}
+	@Override
+	public Admin getByToken(String token) {
+		// TODO Auto-generated method stub
+		return adminRepository.getByResetPasswordToken(token);
+	}
+	@Override
+	public Admin save(Admin admin) {
+		// TODO Auto-generated method stub
+		return adminRepository.save(admin);
 	}
 	
 
