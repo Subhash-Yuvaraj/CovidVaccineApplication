@@ -23,6 +23,9 @@
             </div>
             
                 <p class="error">${error}</p>
+               
+              <div class="bottom">
+        <a href="/adminforgotPassword" class="fp">Forgot Password</a></div>
             
         </form>
         <div id="error-message" class="error"></div>

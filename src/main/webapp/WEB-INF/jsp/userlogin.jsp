@@ -20,6 +20,9 @@
         <span class="error">${error}</span> 
         
         <input type="submit" value="Login">
+        <div class="bottom">
+        <a href="/signup" class="newuser">New user? Click here</a>
+        <a href="/userforgotPassword" class="fp">Forgot Password</a></div>
     </form>
     <style>
     body {
@@ -75,6 +78,21 @@
         border-radius: 3px;
         cursor: pointer;
     }
+	.newuser{
+	text-decoration:none;
+	padding-top:1rem;
+	}
+	
+	.fp{
+	text-decoration:none;
+	}
+	
+	.bottom{
+	 display:flex;
+	 text-decoration:none;
+	 flex-direction:column;
+	 gap: 1rem;
+	}
 
     input[type="submit"]:hover {
         background-color: #45a049;

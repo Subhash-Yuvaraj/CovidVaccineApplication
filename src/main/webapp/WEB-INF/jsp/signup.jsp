@@ -34,7 +34,21 @@
         <input type="text" name="pin" id="pin" required>
         
         <input type="submit" value="Sign up">
+        <div class="bottom">
+        <a href="/userlogin" class="newuser">Already have an account? Login</a></div>
     </form>
     <p id="error">${error}</p>
 </body>
 </html>
+<style>
+.bottom{
+	 display:flex;
+	 text-decoration:none;
+	 flex-direction:column;
+	 gap: 1rem;
+	 margin-top: 10px;
+	}
+	a{
+	text-decoration: none;
+	}
+</style>
