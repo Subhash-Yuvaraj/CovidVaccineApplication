@@ -33,16 +33,29 @@
             <th>Booking ID</th>
             <th>Slot Date</th>
             <th>Centre Address</th>
+            <th>Perform Action</th>
         </tr>
         <c:forEach items="${bookings}" var="booking">
             <tr>
                 <td>${booking.bId}</td>
                 <td>${booking.slot.date}</td>
-                <td>${booking.slot.centre.addressLine1}, ${booking.slot.centre.addressLine2}</td>
+                <td>${booking.slot.centre.addressLine1}, ${booking.slot.centre.addressLine2},${booking.slot.centre.pin}</td>
+                
+                <c:set var="todayDate" value="<%= java.time.LocalDate.now().toString() %>"/>
+                <c:if test = "${booking.slot.date le todayDate}">
+                	<td>
+                	<button><a href="/download?bId=${booking.bId}">Download certificate</a></button>
+                	</td>
+                </c:if>
+                <c:if test = "${booking.slot.date gt todayDate}">
+                	<td>
+                	<button><a href="/cancel?bId=${booking.bId}">Cancel</a></button>
+                	</td>
+                </c:if>
             </tr>
         </c:forEach>
     </table>
-    
+    <p id="error">${error}</p>
     </div>
 </body>
 </html>

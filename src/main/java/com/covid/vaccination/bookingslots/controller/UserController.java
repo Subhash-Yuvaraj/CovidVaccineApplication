@@ -114,9 +114,12 @@ public class UserController {
         return "redirect:/userdashboard"; 
     }
     @GetMapping("/viewHistory")
-    public String viewHistory(Model model) {
-    	if(userhome==null)
+    public String viewHistory(Model model,RedirectAttributes redirectAttributes) {
+    	if(userhome==null) {
+    		redirectAttributes.addFlashAttribute("error", "You have to login first");
     		return "redirect:/userlogin";
+    	}
+    	userhome=userService.findByEmail(userhome.getEmail());
         Set<Booking> bookings = userhome.getBookings();
         model.addAttribute("bookings", bookings);
         
@@ -162,7 +165,7 @@ public class UserController {
     		redirectAttributes.addFlashAttribute("error", "You have to login first");
     		return "redirect:/userlogin";
     	}
-    	
+    	userhome=userService.findByEmail(userhome.getEmail());
     	Set<Booking>bookings=userhome.getBookings();
     	System.out.println(bookings.size());
     	if(bookings.size()>1) {
@@ -189,9 +192,12 @@ public class UserController {
         	redirectAttributes.addFlashAttribute("error", "You have to login first");
             return "redirect:/userlogin";
         }
-
+        userhome=userService.findByEmail(userhome.getEmail());
         Slot slot = slotService.getOne(sId);
-        
+        if(userhome.getBookings().size()>1) {
+        	redirectAttributes.addFlashAttribute("error", "You have already booked for two doses");
+    		return "redirect:/userdashboard";
+        }
         if (slot != null && bookingService.findBySlotAndUser(slot, userhome)==null ) {
             Booking booking = new Booking();
             booking.setSlot(slot);
@@ -277,21 +283,46 @@ public class UserController {
 		if(user==null) {
 			m.addAttribute("title","Reset your password");
 			m.addAttribute("error","Invalid token");
-			return "resetpassword";
+			return "userResetPassword";
 			
 		}
 		else if(!password.equals(confirm)) {
 			m.addAttribute("title","Reset your password");
 			m.addAttribute("error", "Both passwords don't match");
-			return "resetPassword";
+			return "userResetPassword";
 		}
 		else {
 			
 			user.setPassword(hashedPassword(password));
 			userService.save(user);
 			redirectAttributes.addFlashAttribute("error", "You have successfully changed the password");
-			return "userlogin";
+			return "redirect:/userlogin";
 		}
 	}
+    @GetMapping("/cancel")
+    public String cancelBooking(Model model,RedirectAttributes redirectAttributes,@RequestParam Long bId) {
+    	if(userhome==null) {
+    		redirectAttributes.addFlashAttribute("error", "You have to login first");
+    		return "redirect:/userlogin";
+    	}
+    	
+    	for(Booking booking:userService.findByEmail(userhome.getEmail()).getBookings()) {
+    		if(booking.getbId().longValue()==bId.longValue() && booking.getSlot().getDate().after(new Date())) {
+    			System.out.println("condition met");
+    			Booking bookings=bookingService.getOne(bId);
+    			if(bookings==null) {
+    				redirectAttributes.addFlashAttribute("error", "Wrong booking id");
+    				return "redirect:/viewHistory";
+    			}
+    			bookingService.deleteById(bId);
+    			userhome=userService.findByEmail(userhome.getEmail());
+    			redirectAttributes.addFlashAttribute("error", "Booking cancelled");
+    			return "redirect:/viewHistory";
+    		}
+    	}
+    	
+    	redirectAttributes.addFlashAttribute("error", "Wrong booking id");
+    	return "redirect:/viewHistory";
+    }
 
 }

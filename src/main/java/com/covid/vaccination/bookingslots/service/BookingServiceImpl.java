@@ -21,5 +21,16 @@ public class BookingServiceImpl implements BookingService {
 		// TODO Auto-generated method stub
 		return repository.save(booking);
 	}
+	@Override
+	public void deleteById(Long bId) {
+		// TODO Auto-generated method stub
+		repository.deleteById(bId);
+	}
+	@SuppressWarnings("deprecation")
+	@Override
+	public Booking getOne(Long bId) {
+		// TODO Auto-generated method stub
+		return repository.getOne(bId);
+	}
 
 }

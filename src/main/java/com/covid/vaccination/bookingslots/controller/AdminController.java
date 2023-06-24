@@ -199,6 +199,7 @@ public class AdminController {
 	}
 	@GetMapping("/adminforgotPassword")
     public String forgotPassword() {
+		adminHome=null;
     	return "adminforgotPassword";
     }
     @PostMapping("/adminforgotPassword")
@@ -237,6 +238,7 @@ public class AdminController {
     @GetMapping("/adminResetPassword")
 	public String resetPasswordForm(@Param(value="token")String token,Model m) {
 		Admin admin=adminService.getByToken(token);
+		adminHome=null;
 		if(admin==null) {
 			m.addAttribute("title","Reset your password");
 			m.addAttribute("message","Invalid token");
@@ -252,11 +254,17 @@ public class AdminController {
 		String token=request.getParameter("token");
 		String password=request.getParameter("password");
 		Admin admin=adminService.getByToken(token);
+		String confirm=request.getParameter("confirmpassword");
 		if(admin==null) {
 			m.addAttribute("title","Reset your password");
 			m.addAttribute("error","Invalid token");
 			return "resetpassword";
 			
+		}
+		else if(!password.equals(confirm)) {
+			m.addAttribute("title","Reset your password");
+			m.addAttribute("error", "Both passwords don't match");
+			return "userResetPassword";
 		}
 		else {
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -269,8 +277,6 @@ public class AdminController {
 		      for (int i = 0; i < bytes.length; i++) {
 		        sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
 		      }
-
-		      // Get complete hashed password in hex format
 		      String hashed = sb.toString();
 			admin.setPassword(hashed);
 			adminService.save(admin);

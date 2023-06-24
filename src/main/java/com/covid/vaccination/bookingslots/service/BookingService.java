@@ -8,4 +8,8 @@ public interface BookingService {
 	public Booking findBySlotAndUser(Slot slot,User user);
 
 	public Booking save(Booking booking);
+
+	public void deleteById(Long bId);
+
+	public Booking getOne(Long bId);
 }
