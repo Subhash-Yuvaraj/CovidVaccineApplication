@@ -17,7 +17,7 @@
         <label for="password">Password:</label>
         <input type="password" name="password" id="password" required>
         
-        <span class="error">${error}</span> 
+        <p class="error">${error}</p> 
         
         <input type="submit" value="Login">
         <div class="bottom">
@@ -72,7 +72,7 @@
         display: block;
         width: 100%;
         padding: 10px;
-        background-color: #4CAF50;
+        background-color: #2A9592;
         color: #fff;
         border: none;
         border-radius: 3px;
@@ -95,7 +95,7 @@
 	}
 
     input[type="submit"]:hover {
-        background-color: #45a049;
+        background-color: #2A9592;
     }
 </style>
 

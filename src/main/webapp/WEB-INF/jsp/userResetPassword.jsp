@@ -36,6 +36,7 @@
                     <button type="submit" style="border-radius:32px; backgorund-color:#2FC4F3; text-decoration:none; border:none; font-size:20px; min-height:34px; min-width:120px; margin-top:20px">Change</button>
                 </div>
             </fieldset>
+            <p id="error">${error}</p>
         </form>
     </div>
     <script type="text/javascript">

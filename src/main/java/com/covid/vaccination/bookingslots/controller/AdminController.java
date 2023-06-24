@@ -113,7 +113,11 @@ public class AdminController {
 		return "viewCentres";
 	}	
 	@GetMapping("/admindashboard")
-	public String dashboard() {
+	public String dashboard(RedirectAttributes redirectAttributes) {
+		if(adminHome==null) {
+			redirectAttributes.addFlashAttribute("error", "Login first");
+			return "redirect:/adminlogin";
+		}
 		return "admindashboard";
 	}
 	@GetMapping("/manage")
@@ -133,8 +137,9 @@ public class AdminController {
         }
     }
 		@GetMapping("/addSlot")
-		public String showAddSlotPage(@RequestParam("cId") Long cId, Model model) {
+		public String showAddSlotPage(@RequestParam("cId") Long cId, Model model,RedirectAttributes redirectAttributes) {
 			if(adminHome==null) {
+				redirectAttributes.addFlashAttribute("error", "Login first");	
 				return "redirect:/adminlogin";
 			}
 			model.addAttribute("cId", cId);
@@ -144,13 +149,20 @@ public class AdminController {
 		}
 		@PostMapping("/saveSlot")
 	    public String saveSlot(@RequestParam("cId") Long cId,RedirectAttributes redirectAttributes, @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date date, Model model) {
-	        Centre centre = centreService.getCenterById(cId);
+			if(adminHome==null) {
+				redirectAttributes.addFlashAttribute("error", "Login first");	
+				return "redirect:/adminlogin";
+			}
+			Centre centre = centreService.getCenterById(cId);
 	        if (centre == null) {
 	        	redirectAttributes.addFlashAttribute("error", "Enter the proper centre id");
-	            return "redirect:/viewCentres"; // Replace with the desired error page
+	            return "redirect:/viewCentres"; 
 	        }
-	        if(slotService.findByDateAndCentre(date, centre)!=null)
+	        if(slotService.findByDateAndCentre(date, centre)!=null) {
+	        	redirectAttributes.addFlashAttribute("error", "Slot has already been added");
 	        	return "redirect:/viewCentres";
+	        }
+	        	
 	        
 	        Slot slot = new Slot();
 	        slot.setDate(date);
@@ -158,14 +170,17 @@ public class AdminController {
 
 	        slotService.save(slot);
 
-
-	        return "redirect:/addSlot?cId=" + cId; // Redirect to the manage page for the specific Centre
+        	redirectAttributes.addFlashAttribute("error", "Slot has been added successfully");
+	        return "redirect:/addSlot?cId=" + cId; 
 	    }
 
 	@PostMapping("/manage/{cId}/update")
     public String updateCenter(@PathVariable("cId") Long cId,RedirectAttributes redirectAttributes, @ModelAttribute("center") Centre updatedCenter,Model model) {
         Centre existingCenter = centreService.getCenterById(cId);
-        
+        if(adminHome==null) {
+			redirectAttributes.addFlashAttribute("error", "Login first");	
+			return "redirect:/adminlogin";
+		}
         if (existingCenter != null) {
         	Set<Slot>slots=existingCenter.getSlots();
         	for(Slot slot:slots) {

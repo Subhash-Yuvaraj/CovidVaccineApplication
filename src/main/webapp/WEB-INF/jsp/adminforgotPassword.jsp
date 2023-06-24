@@ -26,6 +26,7 @@
                 
             </fieldset>
         </form>
+        <p id="error">${error}</p>
         </div>
     </div>
   </body>

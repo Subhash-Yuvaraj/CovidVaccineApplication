@@ -16,7 +16,7 @@
         <span class="error">${error}</span> 
         
         <label for="password">Password:</label>
-        <input type="password" name="password" id="password" required>
+        <input type="password" name="password" id="password" required oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Password should contain minimum 8 characters\nPassword should contain special characters\nPassword should uppercase and lowercase')" pattern="/^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/ ">
         
         <label for="name">Name:</label>
         <input type="text" name="name" id="name" required>
@@ -38,6 +38,14 @@
         <a href="/userlogin" class="newuser">Already have an account? Login</a></div>
     </form>
     <p id="error">${error}</p>
+    <script type="text/javascript">
+    function checkPassword(str)
+    {
+        var re = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+        return re.test(str);
+    }
+
+    </script>
 </body>
 </html>
 <style>

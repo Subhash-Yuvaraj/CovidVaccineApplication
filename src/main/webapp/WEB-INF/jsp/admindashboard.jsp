@@ -36,9 +36,9 @@
             <tr><td><a href="/viewCentres" class="link" onclick="handleViewCentre()">View Centre</a></td></tr>
         </table></center>
         <div class="content">
-            <!-- Place your content here -->
         </div>
     </div>
+    <p id="error">${error}</p>
 </body>
 </html>
 <style>

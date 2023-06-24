@@ -1,5 +1,6 @@
 package com.covid.vaccination.bookingslots.controller;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.text.DateFormat;
@@ -13,6 +14,7 @@ import java.util.Set;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -33,8 +35,10 @@ import com.covid.vaccination.bookingslots.model.Slot;
 import com.covid.vaccination.bookingslots.model.User;
 import com.covid.vaccination.bookingslots.service.BookingServiceImpl;
 import com.covid.vaccination.bookingslots.service.CentreServiceImpl;
+import com.covid.vaccination.bookingslots.service.PDFGeneratorService;
 import com.covid.vaccination.bookingslots.service.SlotServiceImpl;
 import com.covid.vaccination.bookingslots.service.UserServiceImpl;
+import com.lowagie.text.DocumentException;
 
 import net.bytebuddy.utility.RandomString;
 
@@ -49,6 +53,8 @@ public class UserController {
 	private SlotServiceImpl slotService;
 	@Autowired
 	private JavaMailSender mailSender;
+	@Autowired
+	private PDFGeneratorService generator;
     @GetMapping("/signup")
     public String showSignupForm() {
         return "signup";
@@ -226,6 +232,7 @@ public class UserController {
     }
     @GetMapping("/userforgotPassword")
     public String forgotPassword() {
+    	userhome=null;
     	return "userforgotPassword";
     }
     @PostMapping("/userforgotPassword")
@@ -323,6 +330,24 @@ public class UserController {
     	
     	redirectAttributes.addFlashAttribute("error", "Wrong booking id");
     	return "redirect:/viewHistory";
+    }
+    @GetMapping("/download")
+    public void certificate(RedirectAttributes redirectAttributes,@RequestParam Long bId,HttpServletResponse response) throws DocumentException, IOException {
+    	if(userhome==null) {
+    		redirectAttributes.addFlashAttribute("error", "You have to login first");
+    		return;
+    	}
+    	Booking booking=bookingService.getOne(bId);
+    	if(booking==null || !userhome.getEmail().equals(booking.getUser().getEmail())) {
+    		redirectAttributes.addFlashAttribute("error", "You have given wrong booking id");
+    		return;
+    	}
+    	
+    	String headerkey="Content-Disposition";
+    	String headerValue="attachment;filename=CovidCertificate.pdf";
+    	response.setHeader(headerkey, headerValue);
+    	generator.export(response, booking); 
+    	return;
     }
 
 }

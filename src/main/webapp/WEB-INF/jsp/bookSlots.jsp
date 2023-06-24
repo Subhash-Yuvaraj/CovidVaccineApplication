@@ -81,6 +81,7 @@
 	            </c:forEach>
 	        </tbody>
 	    </table>
+	    <p id="error">${error}</p>
 	 </div>
 </body>
 <style>

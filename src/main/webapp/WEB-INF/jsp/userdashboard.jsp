@@ -35,7 +35,7 @@
 	        <a href="/viewHistory">View Vaccination History</a>
 	        <a href="/bookSlots">Book Vaccination Slots</a>
 	    </div>
-	    <p id=class>${error}</p>
+	    <p id="class">${error}</p>
 	 </div>
 </body>
 </html>
