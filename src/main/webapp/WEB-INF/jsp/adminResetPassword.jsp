@@ -8,7 +8,7 @@
     <div tiles:fragment="content">
     <div class="wrapper">
     	<font color="red">${error}</font>
-        <form class="form" action="/adminresetpassword" method="post">   
+        <form class="form" action="/adminResetPassword" method="post">   
         <h2>Reset your Password</h2>
         <div class="field email">
        		 <div class="input-area">

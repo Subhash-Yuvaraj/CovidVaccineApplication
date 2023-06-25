@@ -273,13 +273,13 @@ public class AdminController {
 		if(admin==null) {
 			m.addAttribute("title","Reset your password");
 			m.addAttribute("error","Invalid token");
-			return "resetpassword";
+			return "adminResetpassword";
 			
 		}
 		else if(!password.equals(confirm)) {
 			m.addAttribute("title","Reset your password");
 			m.addAttribute("error", "Both passwords don't match");
-			return "userResetPassword";
+			return "adminResetPassword";
 		}
 		else {
 			MessageDigest md = MessageDigest.getInstance("MD5");

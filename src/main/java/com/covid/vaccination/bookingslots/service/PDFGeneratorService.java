@@ -32,6 +32,7 @@ public class PDFGeneratorService {
 		bodyPara.setAlignment(Paragraph.ALIGN_LEFT);
 		document.add(paragraph);
 		document.add(bodyPara);
+		
 		document.close();
 	}
 }

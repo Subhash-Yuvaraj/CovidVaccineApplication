@@ -65,6 +65,7 @@
         <input type="date" name="date" id="date" min="<%= java.time.LocalDate.now().plusDays(1) %>" required><br><br>
         <button onclick="onSubmitHandler()">Add Slot</button><br><br>
     </form>
+    <p id="error">${error}</p>
     <table>
         <tr>
         	<th>Slot Id</th>
@@ -79,7 +80,7 @@
             </tr>
         </c:forEach>
     </table>
-    <p id="error">${error}</p>
+    
     </div>
 </body>
 </html>
