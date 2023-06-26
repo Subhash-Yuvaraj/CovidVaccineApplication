@@ -16,7 +16,7 @@
         <span class="error">${error}</span> 
         
         <label for="password">Password:</label>
-        <input type="password" name="password" id="password" required oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Password should contain minimum 8 characters\nPassword should contain special characters\nPassword should uppercase and lowercase')" pattern="/^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/ ">
+        <input type="password" name="password" id="password" required oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Password should contain minimum 8 characters\nPassword should contain special characters\nPassword should uppercase and lowercase')" minlength="8">
         
         <label for="name">Name:</label>
         <input type="text" name="name" id="name" required>
